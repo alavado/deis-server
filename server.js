@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer')
 const $ = require('cheerio')
-const url = 'http://cognos.deis.cl/ibmcognos/cgi-bin/cognos.cgi?b_action=cognosViewer&ui.action=run&ui.object=%2fcontent%2ffolder%5b%40name%3d%27PUB%27%5d%2ffolder%5b%40name%3d%27REPORTES%27%5d%2ffolder%5b%40name%3d%27Atenciones%20de%20Urgencia%27%5d%2freport%5b%40name%3d%27Atenciones%20Urgencia%20-%20Vista%20por%20semanas%20-%20Servicios%27%5d&ui.name=Atenciones%20Urgencia%20-%20Vista%20por%20semanas%20-%20Servicios&run.outputFormat=&run.prompt=true'
+const { URL_DEIS, SERVICIOS_SALUD } = require('./constantes')
 
 const textoBoton = 'Nueva solicitud'
 const servicioSalud = 'Arica'
@@ -11,13 +11,14 @@ puppeteer
     return browser.newPage()
   })
   .then(page => {
-    return page.goto(url).then(async () => {
+    return page.goto(URL_DEIS).then(async () => {
       try {
         await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
       }
       catch (error) {
+        console.log(error)
       }
-      const option = await page.$x(`//option[text()='${servicioSalud}']`)
+      const option = await page.$x(`//option[text()='${SERVICIOS_SALUD[0]}']`)
       await option[0].click()
       const boton = await page.$x(`//button[contains(text(), '${textoBoton}')]`)
       await boton[0].click()
@@ -25,6 +26,7 @@ puppeteer
         await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
       }
       catch (error) {
+        console.log(error)
       }
       return page.content()
     })
