@@ -12,6 +12,11 @@ puppeteer
   })
   .then(page => {
     return page.goto(url).then(async () => {
+      try {
+        await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+      }
+      catch (error) {
+      }
       const option = await page.$x(`//option[text()='${servicioSalud}']`)
       await option[0].click()
       const boton = await page.$x(`//button[contains(text(), '${textoBoton}')]`)
@@ -20,7 +25,6 @@ puppeteer
         await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
       }
       catch (error) {
-        console.log(error)
       }
       return page.content()
     })
