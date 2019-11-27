@@ -1,64 +1,61 @@
 const puppeteer = require('puppeteer')
+const stringify = require('csv-stringify')
 const $ = require('cheerio')
+const path = require('path');
+const fs = require('fs');
 const { URL_DEIS, SERVICIOS_SALUD } = require('./constantes')
 
-const servicio = SERVICIOS_SALUD[6]
+const stringifier = stringify({
+  delimiter: ','
+})
+const wstream = fs.createWriteStream(path.join('scrapes', 'tmp.csv'));
 
-puppeteer
-  .launch()
-  .then(browser => {
-    return browser.newPage()
-  })
-  .then(page => {
-    return page.goto(URL_DEIS).then(async () => {
-      try {
-        await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-      }
-      catch (error) {
-        console.log(error)
-      }
-      console.log('obteniendo datos para ', servicio)
-      const option = await page.$x(`//option[@dv="${servicio}"]`)
-      await option[0].click()
-      const boton = await page.$x("//button[contains(text(), 'Nueva solicitud')]")
-      await boton[0].click()
-      try {
-        await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-      }
-      catch (error) {
-        console.log(error)
-      }
-      return page.content()
+const leerAtencionesServicio = async servicio => {
+  return puppeteer
+    .launch()
+    .then(browser => {
+        return browser.newPage()
     })
-  })
-  .then(html => {
-    const datos = procesarPaginaDEIS(html)
-    console.log(JSON.stringify(datos))
-  })
-  .finally(() => {
-    console.log('se acabo')
-  })
+    .then(page => {
+      return page.goto(URL_DEIS).then(async () => {
+        try {
+          await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+        }
+        catch (error) {
+          console.log(error)
+        }
+        const option = await page.$x(`//option[@dv="${servicio}"]`)
+        await option[0].click()
+        const boton = await page.$x("//button[contains(text(), 'Nueva solicitud')]")
+        await boton[0].click()
+        try {
+          await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+        }
+        catch (error) {
+          console.log(error)
+        }
+        return page.content()
+      })
+    })
+    .then(html => {
+      return procesarPaginaDEIS(html)
+    })
+    .finally(() => {
+      console.log('se acabo')
+    })
+}
 
 const procesarPaginaDEIS = html => {
   let empezoLoBueno = false
-  let i = 1
-  let datos = {
-    semanas: []
-  }
+  let datos = []
   $('td', html).each(function() {
     const texto = $(this).text()
     if (empezoLoBueno) {
       if (isNaN(texto)) {
         empezoLoBueno = false
       }
-      else if (!datos.total) {
-        datos.total = Number(texto.replace('.', ''))
-      }
       else {
-        datos.semanas.push({
-          semana: i++,
-          atenciones: Number(texto.replace('.', ''))
-        })
+        datos.push(Number(texto.replace('.', '')))
       }
     }
     else {
@@ -67,3 +64,16 @@ const procesarPaginaDEIS = html => {
   })
   return datos
 }
+
+const leerTodosLosServicios = async () => {
+  for (let i = 0; i < SERVICIOS_SALUD.length; i++) {
+    const datosServicio = await leerAtencionesServicio(SERVICIOS_SALUD[i])
+    stringifier.write([SERVICIOS_SALUD[i], ...datosServicio])
+  }
+}
+
+leerTodosLosServicios()
+  .then(() => {
+    stringifier.pipe(wstream)
+    stringifier.end()
+  })
