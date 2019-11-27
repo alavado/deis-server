@@ -64,7 +64,7 @@ const leerTodosLosServicios = async () => {
   for (let i = 0; i < 2; i++) {
     const datosServicio = await leerAtencionesServicio(SERVICIOS_SALUD[i])
     if (i === 0) {
-      stringifier.write(['Servicio', 'Total', [...datosServicio.keys()].filter(i => i > 0).map(i => i + 1)])
+      stringifier.write(['Servicio', 'Total', ...[...datosServicio.keys()].filter(i => i > 0)])
     }
     stringifier.write([SERVICIOS_SALUD[i], ...datosServicio])
   }
