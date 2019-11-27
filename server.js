@@ -2,8 +2,7 @@ const puppeteer = require('puppeteer')
 const $ = require('cheerio')
 const { URL_DEIS, SERVICIOS_SALUD } = require('./constantes')
 
-const textoBoton = 'Nueva solicitud'
-const servicioSalud = 'Arica'
+const servicio = SERVICIOS_SALUD[6]
 
 puppeteer
   .launch()
@@ -18,9 +17,10 @@ puppeteer
       catch (error) {
         console.log(error)
       }
-      const option = await page.$x(`//option[text()='${SERVICIOS_SALUD[0]}']`)
+      console.log('obteniendo datos para ', servicio)
+      const option = await page.$x(`//option[@dv="${servicio}"]`)
       await option[0].click()
-      const boton = await page.$x(`//button[contains(text(), '${textoBoton}')]`)
+      const boton = await page.$x("//button[contains(text(), 'Nueva solicitud')]")
       await boton[0].click()
       try {
         await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
@@ -34,9 +34,6 @@ puppeteer
   .then(html => {
     const datos = procesarPaginaDEIS(html)
     console.log(JSON.stringify(datos))
-  })
-  .catch(err => {
-    console.log(err)
   })
   .finally(() => {
     console.log('se acabo')
