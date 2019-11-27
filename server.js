@@ -13,9 +13,7 @@ const wstream = fs.createWriteStream(path.join('scrapes', 'tmp.csv'));
 const leerAtencionesServicio = async servicio => {
   return puppeteer
     .launch()
-    .then(browser => {
-        return browser.newPage()
-    })
+    .then(browser => browser.newPage())
     .then(page => {
       return page.goto(URL_DEIS).then(async () => {
         try {
@@ -40,9 +38,6 @@ const leerAtencionesServicio = async servicio => {
     .then(html => {
       return procesarPaginaDEIS(html)
     })
-    .finally(() => {
-      console.log('se acabo')
-    })
 }
 
 const procesarPaginaDEIS = html => {
@@ -66,8 +61,11 @@ const procesarPaginaDEIS = html => {
 }
 
 const leerTodosLosServicios = async () => {
-  for (let i = 0; i < SERVICIOS_SALUD.length; i++) {
+  for (let i = 0; i < 2; i++) {
     const datosServicio = await leerAtencionesServicio(SERVICIOS_SALUD[i])
+    if (i === 0) {
+      stringifier.write(['Servicio', 'Total', [...datosServicio.keys()].filter(i => i > 0).map(i => i + 1)])
+    }
     stringifier.write([SERVICIOS_SALUD[i], ...datosServicio])
   }
 }
