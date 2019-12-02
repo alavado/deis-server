@@ -1,4 +1,4 @@
-.libPaths( c( .libPaths(), "C:/Users/aleja/OneDrive/Documentos/R/win-library/3.6") )
+.libPaths(c(.libPaths(), 'C:/Users/aleja/OneDrive/Documentos/R/win-library/3.6'))
 
 library(dplyr)
 library(ggplot2)
@@ -7,7 +7,7 @@ library(forecast)
 library(glue)
 
 args <- commandArgs(trailingOnly=TRUE)
-servicio <- if(length(args) == 0) 'Concepción' else args[2]
+servicio <- if(length(args) == 0) 'Arica' else args[2]
 semanasHorizonte <- 12
 
 leerCSV <- function(periodo) {
@@ -39,5 +39,4 @@ autoplot(pronostico)
 archivo <- 'pronosticos/{servicio}.csv' %>% glue()
 pronosticoDF <- pronostico %>% as.data.frame()
 pronosticoDF %>% write.table(file=archivo, sep=",", dec=".", row.names=FALSE, col.names=TRUE)
-#atencionesStat <- atenciones %>% diff(lag=52) %>% diff()
-#ggtsdisplay(atencionesStat)
+
