@@ -5,42 +5,36 @@ const path = require('path');
 const fs = require('fs');
 const { URL_DEIS, SERVICIOS_SALUD } = require('./constantes')
 
-const stringifier = stringify({
-  delimiter: ','
-})
-const wstream = fs.createWriteStream(path.join('scrapes', 'tmp.csv'));
+const navOptions = { waitUntil: 'domcontentloaded' }
+const XPATHServicio = servicio => `//option[@dv="${servicio}"]`
+const XPATHEnviarSolicitud = `//button[contains(text(), 'Nueva solicitud')]`
 
 const leerAtencionesServicio = async servicio => {
-  return puppeteer
-    .launch()
-    .then(browser => browser.newPage())
-    .then(page => {
-      return page.goto(URL_DEIS).then(async () => {
-        try {
-          await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-        }
-        catch (error) {
-          console.log(error)
-        }
-        const option = await page.$x(`//option[@dv="${servicio}"]`)
-        await option[0].click()
-        const boton = await page.$x("//button[contains(text(), 'Nueva solicitud')]")
-        await boton[0].click()
-        try {
-          await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-        }
-        catch (error) {
-          console.log(error)
-        }
-        return page.content()
-      })
-    })
-    .then(html => {
-      return procesarPaginaDEIS(html)
-    })
+  const browser = await puppeteer.launch({})
+  const pagina = await browser.newPage()
+  await pagina.goto(URL_DEIS)
+  try {
+    await pagina.waitForNavigation(navOptions)
+  }
+  catch (error) {
+    console.log(error)
+  }
+  const option = await pagina.$x(XPATHServicio(servicio))
+  await option[0].click()
+  const boton = await pagina.$x(XPATHEnviarSolicitud)
+  await boton[0].click()
+  try {
+    await pagina.waitForNavigation(navOptions)
+  }
+  catch (error) {
+    console.log(error)
+  }
+  const html = await pagina.content()
+  browser.close()
+  return procesarPaginaServicio(html)
 }
 
-const procesarPaginaDEIS = html => {
+const procesarPaginaServicio = html => {
   let empezoLoBueno = false
   let datos = []
   $('td', html).each(function() {
@@ -61,7 +55,7 @@ const procesarPaginaDEIS = html => {
 }
 
 const leerTodosLosServicios = async () => {
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < SERVICIOS_SALUD.length; i++) {
     const datosServicio = await leerAtencionesServicio(SERVICIOS_SALUD[i])
     if (i === 0) {
       stringifier.write(['Servicio', 'Total', ...[...datosServicio.keys()].filter(i => i > 0)])
@@ -69,6 +63,12 @@ const leerTodosLosServicios = async () => {
     stringifier.write([SERVICIOS_SALUD[i], ...datosServicio])
   }
 }
+
+
+const stringifier = stringify({
+  delimiter: ','
+})
+const wstream = fs.createWriteStream(path.join('scrapes', 'tmp.csv'))
 
 leerTodosLosServicios()
   .then(() => {
