@@ -1,18 +1,21 @@
+.libPaths( c( .libPaths(), "C:/Users/aleja/OneDrive/Documentos/R/win-library/3.6") )
+
 library(dplyr)
 library(ggplot2)
 library(reshape)
 library(forecast)
 library(glue)
 
-servicio <- 'Arica'
+args <- commandArgs(trailingOnly=TRUE)
+servicio <- if(length(args) == 0) 'ConcepciÃ³n' else args[2]
 semanasHorizonte <- 12
 
-leerAño <- function(año) {
-  datosCSV = read.csv('../scrapes/datos_{año}.csv' %>% glue(), header = TRUE)
+leerCSV <- function(periodo) {
+  datosCSV = '../scrapes/datos_{periodo}.csv'  %>% glue() %>% read.csv(encoding='UTF-8', header=TRUE)
   return (datosCSV[datosCSV$Servicio == servicio,] %>% as.numeric() %>% tail(n=-2))
 }
 
-datos <- sapply(2017:2019, leerAño) %>% unlist() %>% melt()
+datos <- sapply(2017:2019, leerCSV) %>% unlist() %>% melt()
 colnames(datos) <- 'atenciones'
 atenciones <- ts(datos, frequency=52, start=2017)
 
@@ -22,18 +25,19 @@ autoplot(atenciones[,'atenciones']) +
   xlab('Semanas')
 
 ggseasonplot(atenciones, year.labels=TRUE, year.labels.left=TRUE) +
-  ylab('Atenciones') +
-  ggtitle('Gráfico estacional: atenciones de urgencia en {servicio}' %>% glue())
+  ggtitle('GrÃ¡fico estacional: atenciones de urgencia en {servicio}' %>% glue()) +
+  ylab('Atenciones')
 
 gglagplot(atenciones, set.lags=c(13,26,39,52)) +
-  ylab('Atenciones') +
-  ggtitle('Lag plot: atenciones de urgencia en {servicio}' %>% glue())
+  ggtitle('Lag plot: atenciones de urgencia en {servicio}' %>% glue()) +
+  ylab('Atenciones')
 
-arimaFit <- atenciones %>% auto.arima(seasonal=TRUE, approximation=FALSE, stepwise=FALSE, test='kpss')
+arimaFit <- atenciones %>% auto.arima(seasonal=TRUE, stepwise=FALSE, test='kpss')
 pronostico <- arimaFit %>% forecast(h=semanasHorizonte)
 autoplot(pronostico)
 
-pronosticoDF <- as.data.frame(pronostico)
-write.table(pronosticoDF, file="pronostico.csv", quote=F, sep=",", dec=".", na="", row.names=T, col.names=T)
+archivo <- 'pronosticos/{servicio}.csv' %>% glue()
+pronosticoDF <- pronostico %>% as.data.frame()
+pronosticoDF %>% write.table(file=archivo, sep=",", dec=".", row.names=FALSE, col.names=TRUE)
 #atencionesStat <- atenciones %>% diff(lag=52) %>% diff()
 #ggtsdisplay(atencionesStat)
