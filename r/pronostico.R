@@ -5,7 +5,7 @@ library(forecast)
 library(glue)
 
 servicio <- 'Arica'
-horizonte <- 12
+semanasHorizonte <- 12
 
 leerAño <- function(año) {
   datosCSV = read.csv('../scrapes/datos_{año}.csv' %>% glue(), header = TRUE)
@@ -29,7 +29,11 @@ gglagplot(atenciones, set.lags=c(13,26,39,52)) +
   ylab('Atenciones') +
   ggtitle('Lag plot: atenciones de urgencia en {servicio}' %>% glue())
 
-arima_at <- auto.arima(atenciones)
-autoplot(arima_at)
-pred_at <- forecast(arima_at, h=horizonte)
-autoplot(pred_at)
+arimaFit <- atenciones %>% auto.arima(seasonal=TRUE, approximation=FALSE, stepwise=FALSE, test='kpss')
+pronostico <- arimaFit %>% forecast(h=semanasHorizonte)
+autoplot(pronostico)
+
+pronosticoDF <- as.data.frame(pronostico)
+write.table(pronosticoDF, file="pronostico.csv", quote=F, sep=",", dec=".", na="", row.names=T, col.names=T)
+#atencionesStat <- atenciones %>% diff(lag=52) %>% diff()
+#ggtsdisplay(atencionesStat)
