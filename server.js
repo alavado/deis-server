@@ -5,11 +5,15 @@ const path = require('path');
 const fs = require('fs');
 const { URL_DEIS, SERVICIOS_SALUD } = require('./constantes')
 
-const navOptions = { waitUntil: 'domcontentloaded' }
+const navOptions = {
+  waitUntil: 'domcontentloaded',
+  timeout: 10000
+}
 const XPATHServicio = servicio => `//option[@dv="${servicio}"]`
+const XPATHAño = año => `//option[@dv="${año}"]`
 const XPATHEnviarSolicitud = `//button[contains(text(), 'Nueva solicitud')]`
 
-const leerAtencionesServicio = async servicio => {
+const leerAtencionesServicio = async (servicio, año = null) => {
   const browser = await puppeteer.launch({})
   const pagina = await browser.newPage()
   await pagina.goto(URL_DEIS)
@@ -18,6 +22,10 @@ const leerAtencionesServicio = async servicio => {
   }
   catch (error) {
     console.log(error)
+  }
+  if (año !== null) {
+    const option = await pagina.$x(XPATHAño(año))
+    await option[0].click()
   }
   const option = await pagina.$x(XPATHServicio(servicio))
   await option[0].click()
@@ -54,9 +62,13 @@ const procesarPaginaServicio = html => {
   return datos
 }
 
-const leerTodosLosServicios = async () => {
+const stringifier = stringify({
+  delimiter: ','
+})
+
+const leerTodosLosServicios = async año => {
   for (let i = 0; i < SERVICIOS_SALUD.length; i++) {
-    const datosServicio = await leerAtencionesServicio(SERVICIOS_SALUD[i])
+    const datosServicio = await leerAtencionesServicio(SERVICIOS_SALUD[i], año)
     if (i === 0) {
       stringifier.write(['Servicio', 'Total', ...[...datosServicio.keys()].filter(i => i > 0)])
     }
@@ -64,14 +76,10 @@ const leerTodosLosServicios = async () => {
   }
 }
 
-
-const stringifier = stringify({
-  delimiter: ','
-})
-const wstream = fs.createWriteStream(path.join('scrapes', 'tmp.csv'))
-
-leerTodosLosServicios()
+const añoActual = 2017//new Date().getFullYear()
+leerTodosLosServicios(añoActual)
   .then(() => {
+    const wstream = fs.createWriteStream(path.join('scrapes', `datos_${añoActual}.csv`))
     stringifier.pipe(wstream)
     stringifier.end()
   })
