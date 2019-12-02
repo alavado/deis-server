@@ -4,30 +4,17 @@ library(reshape)
 library(forecast)
 library(glue)
 
-servicio <- 'Metropolitano Norte'
+servicio <- 'Arica'
 horizonte <- 12
 
-data2017 = read.csv('../scrapes/datos_2017.csv', header = TRUE)
-data2018 = read.csv('../scrapes/datos_2018.csv', header = TRUE)
-data2019 = read.csv('../scrapes/datos_2019.csv', header = TRUE)
+leerAño <- function(año) {
+  datosCSV = read.csv('../scrapes/datos_{año}.csv' %>% glue(), header = TRUE)
+  return (datosCSV[datosCSV$Servicio == servicio,] %>% as.numeric() %>% tail(n=-2))
+}
 
-datos2019 <- data2019[data2019$Servicio == servicio,] %>%
-  as.numeric() %>%
-  tail(n = -2)
-
-datos2018 <- data2018[data2018$Servicio == servicio,] %>%
-  as.numeric() %>%
-  tail(n = -2)
-
-datos2017 <- data2017[data2017$Servicio == servicio,] %>%
-  as.numeric() %>%
-  tail(n = -2)
-
-datos <- c(datos2017, datos2018, datos2019) %>%
-  melt()
-
-atenciones <- ts(datos, frequency = 52, start = 2017)
-colnames(atenciones) <- c('atenciones')
+datos <- sapply(2017:2019, leerAño) %>% unlist() %>% melt()
+colnames(datos) <- 'atenciones'
+atenciones <- ts(datos, frequency=52, start=2017)
 
 autoplot(atenciones[,'atenciones']) +
   ggtitle('Atenciones de urgencia por enfermedades respiratorias') +
