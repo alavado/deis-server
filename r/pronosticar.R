@@ -1,4 +1,5 @@
 .libPaths(c(.libPaths(), 'C:/Users/aleja/OneDrive/Documentos/R/win-library/3.6'))
+setwd("C:/Users/aleja/OneDrive/Escritorio/node/deis-server/r")
 
 library(dplyr)
 library(ggplot2)
@@ -7,13 +8,15 @@ library(forecast)
 library(glue)
 
 args <- commandArgs(trailingOnly=TRUE)
-servicio <- if(length(args) == 0) 'Arica' else args[2]
+servicio <- if(length(args) == 0) 'Chile' else args[2]
 semanasHorizonte <- 12
 
 leerCSV <- function(periodo) {
   datosCSV = '../scrapes/datos_{periodo}.csv'  %>% glue() %>% read.csv(encoding='UTF-8', header=TRUE)
   return (datosCSV[datosCSV$Servicio == servicio,] %>% as.numeric() %>% tail(n=-2))
 }
+
+# Falta remover los outliers
 
 datos <- sapply(2017:2019, leerCSV) %>% unlist() %>% melt()
 colnames(datos) <- 'atenciones'
