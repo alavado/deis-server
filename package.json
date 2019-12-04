@@ -12,6 +12,7 @@
     "cheerio": "^1.0.0-rc.3",
     "csv": "^5.3.0",
     "csv-generate": "^3.2.3",
+    "csvtojson": "^2.0.10",
     "puppeteer": "^2.0.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.5"

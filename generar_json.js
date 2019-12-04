@@ -1,12 +1,21 @@
 const fs = require('fs');
+const csv = require('csvtojson')
 const { SERVICIOS_SALUD } = require('./constantes')
 const { PATH_WEBAPP } = require('./config')
+
+const leerPronostico = servicio => {
+  csv()
+    .fromFile(`./r/pronosticos/${servicio}.csv`)
+    .then(json => {
+    })
+    .catch(err => console.log(servicio))
+}
 
 const datos = []
 
 SERVICIOS_SALUD.forEach(servicio => {
   let historico = []
-  let pronostico = []
+  let pronostico = leerPronostico(servicio)
   datos.push({
     servicio,
     historico,
