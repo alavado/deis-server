@@ -64,7 +64,7 @@ const stringifier = stringify({
 })
 
 const leerTodosLosServicios = async año => {
-  for (let i = 0; i < 1/*SERVICIOS_SALUD.length*/; i++) {
+  for (let i = 0; i < SERVICIOS_SALUD.length; i++) {
     const datosServicio = await leerAtencionesServicio(SERVICIOS_SALUD[i], año)
     if (i === 0) {
       stringifier.write(['Servicio', 'Total', ...[...datosServicio.keys()].filter(i => i > 0)])
@@ -73,10 +73,10 @@ const leerTodosLosServicios = async año => {
   }
 }
 
-const añoActual = new Date().getFullYear()
+const añoActual = 2015//new Date().getFullYear()
 leerTodosLosServicios(añoActual)
   .then(() => {
-    const wstream = fs.createWriteStream(path.join('scrapes', `xdatos_${añoActual}.csv`))
+    const wstream = fs.createWriteStream(path.join('scrapes', `datos_${añoActual}.csv`))
     stringifier.pipe(wstream)
     stringifier.end()
   })

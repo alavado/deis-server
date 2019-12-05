@@ -16,11 +16,9 @@ leerCSV <- function(periodo) {
   return (datosCSV[datosCSV$Servicio == servicio,] %>% as.numeric() %>% tail(n=-2))
 }
 
-# Falta remover los outliers
-
-datos <- sapply(2017:2019, leerCSV) %>% unlist() %>% melt()
+datos <- sapply(2015:2019, leerCSV) %>% unlist() %>% melt()
 colnames(datos) <- 'atenciones'
-atenciones <- ts(datos, frequency=52, start=2017)
+atenciones <- ts(datos, frequency=52, start=2015)
 
 autoplot(atenciones[,'atenciones']) +
   ggtitle('Atenciones de urgencia por enfermedades respiratorias') +

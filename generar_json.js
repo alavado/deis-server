@@ -13,7 +13,7 @@ const leerPronostico = async servicio => {
 
 const formatearJSON = datos => {
   const llaves = Object.keys(datos)
-  return llaves.filter(k => !isNaN(k)).sort().map(k => Number(datos[k]))
+  return llaves.filter(k => !isNaN(k)).sort((x, y) => Number(x) > Number(y) ? 1 : -1).map(k => Number(datos[k]))
 }
 
 const generarJSON = async () => {
