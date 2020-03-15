@@ -20,22 +20,22 @@ datos <- sapply(2015:2020, leerCSV) %>% unlist() %>% melt()
 colnames(datos) <- 'atenciones'
 atenciones <- datos %>% ts(frequency=52, start=2015)
 
-autoplot(atenciones[,'atenciones']) +
-  ggtitle('Atenciones de urgencia por enfermedades respiratorias') +
-  ylab('Atenciones') +
-  xlab('Semanas')
+#autoplot(atenciones[,'atenciones']) +
+#  ggtitle('Atenciones de urgencia por enfermedades respiratorias') +
+#  ylab('Atenciones') +
+#  xlab('Semanas')
 
-ggseasonplot(atenciones, year.labels=TRUE, year.labels.left=TRUE) +
-  ggtitle('Gráfico estacional: atenciones de urgencia en {servicio}' %>% glue()) +
-  ylab('Atenciones')
+#ggseasonplot(atenciones, year.labels=TRUE, year.labels.left=TRUE) +
+#  ggtitle('Gráfico estacional: atenciones de urgencia en {servicio}' %>% glue()) +
+#  ylab('Atenciones')
 
-gglagplot(atenciones, set.lags=c(13,26,39,52)) +
-  ggtitle('Lag plot: atenciones de urgencia en {servicio}' %>% glue()) +
-  ylab('Atenciones')
+#gglagplot(atenciones, set.lags=c(13,26,39,52)) +
+#  ggtitle('Lag plot: atenciones de urgencia en {servicio}' %>% glue()) +
+#  ylab('Atenciones')
 
 arimaFit <- atenciones %>% auto.arima(seasonal=TRUE, stepwise=FALSE, test='kpss')
 pronostico <- arimaFit %>% forecast(h=semanasHorizonte)
-autoplot(pronostico)
+#autoplot(pronostico)
 
 archivo <- 'pronosticos/{servicio}.csv' %>% glue()
 pronosticoDF <- pronostico %>% as.data.frame()
