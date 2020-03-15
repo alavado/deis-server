@@ -9,16 +9,16 @@ library(glue)
 
 args <- commandArgs(trailingOnly=TRUE)
 servicio <- if(length(args) == 0) 'Chile' else args[2]
-semanasHorizonte <- 12
+semanasHorizonte <- 52
 
 leerCSV <- function(periodo) {
   datosCSV = '../scrapes/datos_{periodo}.csv'  %>% glue() %>% read.csv(encoding='UTF-8', header=TRUE)
   return (datosCSV[datosCSV$Servicio == servicio,] %>% as.numeric() %>% tail(n=-2))
 }
 
-datos <- sapply(2015:2019, leerCSV) %>% unlist() %>% melt()
+datos <- sapply(2015:2020, leerCSV) %>% unlist() %>% melt()
 colnames(datos) <- 'atenciones'
-atenciones <- ts(datos, frequency=52, start=2015)
+atenciones <- datos %>% ts(frequency=7, start=2015)
 
 autoplot(atenciones[,'atenciones']) +
   ggtitle('Atenciones de urgencia por enfermedades respiratorias') +

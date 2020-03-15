@@ -1,5 +1,5 @@
 #numeroRegion <- input
-codigoRegion <- unlist(input)
+codigoRegion <- "CL"
 Sys.setenv(TZ = "UTC")
 
 library(ggplot2)
@@ -18,10 +18,10 @@ hoy <- ymd("2019-03-31") #Sys.Date() - days(1) #ultima semana estadistica cumpli
 hace3 <- hoy - weeks(156)
 fechas <- paste(hace3,hoy)
 
-nombres <- read.csv("r/keywords2018.csv", encoding = 'UTF-8')
+nombres <- read.csv("keywords2018.csv", encoding = 'UTF-8')
 nombres <- as.vector(nombres$x)
 
-deis <- read.csv('r/deis.csv', encoding = 'UTF-8')
+deis <- read.csv('deis.csv', encoding = 'UTF-8')
 colnames(deis) <- c('Semana','Fecha','CL','CL-AP')
 ################### Consulta Trends 100 terminos ###################
 
@@ -55,8 +55,8 @@ extract_trends <- function(region,fechas,nombres){
 
 predice <- function(atenciones,busquedas,fecha,n_futuro){
   index <- c((length(atenciones)-156):length(atenciones))
-  atenciones<- tsclean(ts(ma(tsclean(ts(atenciones[index])), order = 7), frequency = 7))
-  busquedas <- tsclean(ts(ma(tsclean(ts(busquedas)), order = 7), frequency = 7))
+  atenciones<- tsclean(ts(ma(tsclean(ts(atenciones[index])), order = 7), frequency = 52))
+  busquedas <- tsclean(ts(ma(tsclean(ts(busquedas)), order = 7), frequency = 52))
   
   #test_ind <- c(145:157)
   futuro <- n_futuro
@@ -106,6 +106,8 @@ df_predict <- predice(atenciones = unlist(deis[,codigoRegion]),
                       busquedas = data$suma_busquedas,
                       fecha = data$semanas,
                       n_futuro = 12)
+
+autoplot(df_predict)
 
 write.csv(df_predict[df_predict$origen == 'pred',], 'r/prediccion.csv')
 
