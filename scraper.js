@@ -56,7 +56,7 @@ const procesarPaginaServicio = html => {
       empezoLoBueno = texto === 'TOTAL CAUSAS SISTEMA RESPIRATORIO'
     }
   })
-  return datos
+  return datos.length < 52 ? datos.slice(0, -1) : datos
 }
 
 const stringifier = stringify({
