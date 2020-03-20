@@ -73,7 +73,7 @@ const leerTodosLosServicios = async año => {
   }
 }
 
-const añoActual = 2019//new Date().getFullYear()
+const añoActual = new Date().getFullYear()
 leerTodosLosServicios(añoActual)
   .then(() => {
     const wstream = fs.createWriteStream(path.join('scrapes', `datos_${añoActual}.csv`))
